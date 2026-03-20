@@ -58,6 +58,7 @@ open class OCKGridTaskView: OCKView, OCKTaskDisplayable, UICollectionViewDelegat
     private enum Constants {
         static let estimatedItemHeight: CGFloat = 70
         static let estimatedItemWidth: CGFloat = 80
+        static let maximumItemsPerRow = 3
     }
 
     // MARK: Properties
@@ -149,6 +150,26 @@ open class OCKGridTaskView: OCKView, OCKTaskDisplayable, UICollectionViewDelegat
         return margin
     }
 
+    private func columnCount(
+        forContainerWidth containerWidth: CGFloat,
+        itemWidth: CGFloat,
+        interItemSpacing: CGFloat,
+        itemCount: Int
+    ) -> Int {
+        guard itemCount > 0 else { return 1 }
+
+        let maximumColumns = min(Constants.maximumItemsPerRow, itemCount)
+        var columnsThatFit = 1
+
+        for columns in 1...maximumColumns {
+            let requiredWidth = (itemWidth * CGFloat(columns)) + (interItemSpacing * CGFloat(max(columns - 1, 0)))
+            guard requiredWidth <= containerWidth else { break }
+            columnsThatFit = columns
+        }
+
+        return columnsThatFit
+    }
+
     private func setupGestures() {
         headerButton.addTarget(self, action: #selector(didTapView), for: .touchUpInside)
     }
@@ -181,15 +202,20 @@ open class OCKGridTaskView: OCKView, OCKTaskDisplayable, UICollectionViewDelegat
             let itemSize = NSCollectionLayoutSize(widthDimension: .absolute(scaledWidth), heightDimension: .absolute(scaledHeight))
             let item = NSCollectionLayoutItem(layoutSize: itemSize)
 
+            let itemCount = self.collectionView.dataSource?.collectionView(self.collectionView, numberOfItemsInSection: 0) ?? 0
+            let columns = self.columnCount(
+                forContainerWidth: configuration.container.effectiveContentSize.width,
+                itemWidth: scaledWidth,
+                interItemSpacing: spacing,
+                itemCount: itemCount
+            )
             let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .absolute(scaledHeight))
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitem: item, count: columns)
             group.interItemSpacing = .fixed(spacing)
 
             let containerWidth = configuration.container.effectiveContentSize.width
-            let itemCount = self.collectionView.dataSource?.collectionView(self.collectionView, numberOfItemsInSection: 0) ?? 0
-            // Create margins to center the content in the container
-            let margin = self.horizontalMargin(forContainerWidth: containerWidth, itemWidth: scaledWidth,
-                                               interItemSpacing: spacing, itemCount: itemCount)
+            let contentWidth = (scaledWidth * CGFloat(columns)) + (spacing * CGFloat(max(columns - 1, 0)))
+            let margin = max(0, (containerWidth - contentWidth) / 2.0)
 
             let section = NSCollectionLayoutSection(group: group)
             section.interGroupSpacing = spacing

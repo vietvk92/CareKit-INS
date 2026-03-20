@@ -99,11 +99,16 @@ open class OCKCalendarViewController<
     private static func completionStates(
         forDailyProgress dailyProgress: [TemporalProgress<CareTaskProgress>]
     ) -> [OCKCompletionState] {
-
         return dailyProgress.map { dayProgress in
-
+            guard !dayProgress.values.isEmpty else {
+                return .empty
+            }
             let aggregatedProgress = AggregatedCareTaskProgress(combining: dayProgress.values)
-            return .progress(aggregatedProgress.fractionCompleted)
+            let fractionCompleted = aggregatedProgress.fractionCompleted
+            guard fractionCompleted > 0 else {
+                return .zero
+            }
+            return .progress(fractionCompleted)
         }
     }
 
