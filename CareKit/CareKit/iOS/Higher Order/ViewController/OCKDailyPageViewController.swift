@@ -246,13 +246,13 @@ UIPageViewControllerDataSource, UIPageViewControllerDelegate {
 
     // MARK: - OCKCalendarPageViewControllerDelegate
 
-    public func weekCalendarPageViewController(_ viewController: OCKWeekCalendarPageViewController, didSelectDate date: Date, previousDate: Date) {
+    open func weekCalendarPageViewController(_ viewController: OCKWeekCalendarPageViewController, didSelectDate date: Date, previousDate: Date) {
         showPage(forDate: date, previousDate: previousDate, animated: true)
     }
 
-    public func weekCalendarPageViewController(_ viewController: OCKWeekCalendarPageViewController, didChangeDateInterval interval: DateInterval) {}
+    open func weekCalendarPageViewController(_ viewController: OCKWeekCalendarPageViewController, didChangeDateInterval interval: DateInterval) {}
 
-    public func weekCalendarPageViewController(_ viewController: OCKWeekCalendarPageViewController, didEncounterError error: Error) {
+    open func weekCalendarPageViewController(_ viewController: OCKWeekCalendarPageViewController, didEncounterError error: Error) {
         if delegate == nil {
             log(.error, "An error occurred in the calendar, but no delegate was set to forward it to!", error: error)
         }
