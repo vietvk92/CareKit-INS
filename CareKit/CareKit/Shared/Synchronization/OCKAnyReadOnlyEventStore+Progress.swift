@@ -36,6 +36,8 @@ extension OCKAnyReadOnlyEventStore {
 
     /// Computes ordered aggregated daily progress for each day in the provided interval.
     /// Days with no events will have a nil progress value.
+    /// Events whose task reports `impactsAdherence == false` are excluded so they do
+    /// not influence the aggregated ring progress (e.g. button-log tasks).
     /// - Parameters:
     ///   - dateInterval: Progress will be computed for each day in the interval.
     ///   - computeProgress: Used to compute progress for an event.
@@ -49,8 +51,10 @@ extension OCKAnyReadOnlyEventStore {
 
         let progress = events.map { events in
 
-            Self.dailyProgress(
-                for: events,
+            let adherenceEvents = events.filter { $0.task.impactsAdherence }
+
+            return Self.dailyProgress(
+                for: adherenceEvents,
                 dateInterval: dateInterval,
                 computeProgress: computeProgress
             )
